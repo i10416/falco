@@ -11,8 +11,8 @@ func (f *Formatter) formatExpression(expr ast.Expression) *ChunkBuffer {
 	buf := f.chunkBuffer()
 
 	// leading comment
-	if v := f.formatComment(expr.GetMeta().Leading, "", 0); v != "" {
-		buf.WriteString(v + " ")
+	if v := f.formatComment(expr.GetMeta().Leading, " ", 0); v != "" {
+		buf.WriteString(v)
 	}
 
 	switch t := expr.(type) {
@@ -47,7 +47,7 @@ func (f *Formatter) formatExpression(expr ast.Expression) *ChunkBuffer {
 
 	// trailing comment
 	if v := f.formatComment(expr.GetMeta().Trailing, "", 0); v != "" {
-		buf.WriteString(" " + v)
+		buf.WriteString(v)
 	}
 
 	return buf

@@ -22,6 +22,7 @@ func assert(t *testing.T, input, expect string, conf *config.FormatConfig) strin
 	}
 	vcl, err := parser.New(lexer.NewFromString(input)).ParseVCL()
 	if err != nil {
+		//fmt.Printf("%+v", err)
 		t.Errorf("Unexpected parser error: %s", err)
 		return ""
 	}

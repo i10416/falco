@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/ysugimoto/falco/ast"
 )
@@ -17,5 +18,5 @@ func (f *Formatter) formatComment(comments ast.Comments, sep string, level int) 
 		buf.WriteString(sep)
 	}
 
-	return buf.String()
+	return strings.TrimSuffix(buf.String(), " ")
 }

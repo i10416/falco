@@ -223,16 +223,20 @@ func (f *Formatter) formatIfStatement(stmt *ast.IfStatement) string {
 			buf.WriteString(" ")
 		}
 		buf.WriteString("else ")
-		buf.WriteString(f.formatBlockStatement(stmt.Alternative))
+		buf.WriteString(f.formatElseStatement(stmt.Alternative))
 	}
 
 	return buf.String()
 }
 
+func (f *Formatter) formatElseStatement(stmt *ast.ElseStatement) string {
+	return f.formatBlockStatement(stmt.Consequence)
+}
+
 func (f *Formatter) formatSwitchStatement(stmt *ast.SwitchStatement) string {
 	var buf bytes.Buffer
 
-	buf.WriteString("switch (" + f.formatExpression(stmt.Control).String() + ") {\n")
+	buf.WriteString("switch (" + f.formatExpression(stmt.Control.Expression).String() + ") {\n")
 	for _, c := range stmt.Cases {
 		buf.WriteString(f.formatComment(c.Leading, "\n", c.Meta.Nest))
 		buf.WriteString(f.indent(c.Meta.Nest))
@@ -339,7 +343,7 @@ func (f *Formatter) formatReturnStatement(stmt *ast.ReturnStatement) string {
 			suffix = ")"
 		}
 		buf.WriteString(prefix)
-		buf.WriteString(f.formatExpression(*stmt.ReturnExpression).String())
+		buf.WriteString(f.formatExpression(stmt.ReturnExpression).String())
 		buf.WriteString(suffix)
 	}
 	buf.WriteString(";")

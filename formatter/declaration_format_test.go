@@ -31,15 +31,17 @@ func TestAclDeclarationFormat(t *testing.T) {
 		},
 		{
 			name: "with comment",
-			input: `acl name {
-			  "192.0.2.0"/24;  // some comment
-			  !"192.0.2.12";
+			input: `acl /* before_name */name/* after_name */ {
+			  // leading
+			  "192.0.2.0"/24 /* before_semicolon */ ;  // some comment
+			  ! /* inside_inverse */ "192.0.2.12";
 			  "2001:db8:ffff:ffff:ffff:ffff:ffff:ffff";
 			  // The ending
 			} // trailing`,
-			expect: `acl name {
-  "192.0.2.0"/24;  // some comment
-  !"192.0.2.12";
+			expect: `acl /* before_name */ name /* after_name */ {
+  // leading
+  "192.0.2.0"/24 /* before_semicolon */;  // some comment
+  ! /* inside_inverse */ "192.0.2.12";
   "2001:db8:ffff:ffff:ffff:ffff:ffff:ffff";
   // The ending
 }  // trailing
@@ -63,8 +65,10 @@ func TestBackendDeclarationFormat(t *testing.T) {
 	}{
 		{
 			name: "basic formatting",
-			input: `backend example {
-				.connect_timeout = 1s;
+			input: `// leading
+			backend /* before_name */ example /* after_name */ {
+				// leading
+				.connect_timeout /* after_name */ = /* before_value */ 1s /* after_value */;  // trailing
 				.dynamic = true;
 				.port = "443";
 				.host = "example.com";
@@ -77,8 +81,10 @@ func TestBackendDeclarationFormat(t *testing.T) {
 					.dummy = true;
 				}
 			}`,
-			expect: `backend example {
-  .connect_timeout = 1s;
+			expect: `// leading
+backend /* before_name */ example /* after_name */ {
+  // leading
+  .connect_timeout /* after_name */ = /* before_value */ 1s /* after_value */;  // trailing
   .dynamic = true;
   .port = "443";
   .host = "example.com";
@@ -119,6 +125,45 @@ func TestBackendDeclarationFormat(t *testing.T) {
   .between_bytes_timeout = 30s;
   .ssl                   = true;
   .probe                 = {
+    .request = "GET / HTTP/1.1" "Host: example.com" "Connection: close";
+    .dummy   = true;
+  }
+}
+`,
+			conf: &config.FormatConfig{
+				IndentWidth:              2,
+				IndentStyle:              "space",
+				AlignDeclarationProperty: true,
+				TrailingCommentWidth:     2,
+				LineWidth:                80,
+			},
+		},
+		{
+			name: "property alignment with comment",
+			input: `backend example {
+				.connect_timeout /* after_name */ = /* before_value */ 1s /* after_value */;  // trailing
+				.dynamic = true;
+				.port = "443";
+				.host = "example.com";
+				.first_byte_timeout = 30s;
+				.max_connections = 500;
+				.between_bytes_timeout = 30s;
+				.ssl = true;
+				.probe = {
+					.request = "GET / HTTP/1.1" "Host: example.com" "Connection: close";
+					.dummy = true;
+				}
+			}`,
+			expect: `backend example {
+  .connect_timeout /* after_name */ = /* before_value */ 1s /* after_value */;  // trailing
+  .dynamic                          = true;
+  .port                             = "443";
+  .host                             = "example.com";
+  .first_byte_timeout               = 30s;
+  .max_connections                  = 500;
+  .between_bytes_timeout            = 30s;
+  .ssl                              = true;
+  .probe                            = {
     .request = "GET / HTTP/1.1" "Host: example.com" "Connection: close";
     .dummy   = true;
   }
@@ -190,16 +235,24 @@ func TestDirectorDeclarationFormat(t *testing.T) {
 	}{
 		{
 			name: "basic formatting",
-			input: `director example hash {
-				{ .backend=F_backend1; .weight=1; }
+			input: `// leading
+			director /* before_name */ example /* after_name */ hash /* after_type */ {
+				.quorum = 50%;
+				// leading
+				{ /* before_name */ .backend /* after_name */ = /* before_value */ F_backend1 /* after_value */; .weight=1; /* before_right_brace */ }
 				{ .backend=F_backend2; .weight=1; }
 				{ .backend=F_backend3; .weight=1; }
-			}`,
-			expect: `director example hash {
-  { .backend = F_backend1; .weight = 1; }
+				// infix
+			} // trailing`,
+			expect: `// leading
+director /* before_name */ example /* after_name */ hash /* after_type */ {
+  .quorum = 50%;
+  // leading
+  { /* before_name */ .backend /* after_name */ = /* before_value */ F_backend1 /* after_value */; .weight = 1; /* before_right_brace */ }
   { .backend = F_backend2; .weight = 1; }
   { .backend = F_backend3; .weight = 1; }
-}
+  // infix
+}  // trailing
 `,
 		},
 		{
@@ -241,26 +294,32 @@ func TestTableDeclarationFormat(t *testing.T) {
 	}{
 		{
 			name: "basic formatting",
-			input: `table routing_table BACKEND {
-				"a.example.com":F_backendA,
+			input: `// leading
+			table /* before_name */ routing_table /* after_name */ BACKEND /* after_type */ {
+				// leading
+				"a.example.com"/* after_key */:/* before_value */F_backendA /* after_value */,
 				"b.example.com":F_backendB,
 				"c.example.com":F_backendC,
-			}`,
-			expect: `table routing_table BACKEND {
-  "a.example.com": F_backendA,
+				// infix
+			} // trailing`,
+			expect: `// leading
+table /* before_name */ routing_table /* after_name */ BACKEND /* after_type */ {
+  // leading
+  "a.example.com" /* after_key */: /* before_value */ F_backendA /* after_value */,
   "b.example.com": F_backendB,
   "c.example.com": F_backendC,
-}
+  // infix
+}  // trailing
 `,
 		},
 		{
 			name: "basic formatting without table type",
-			input: `table routing_table {
+			input: `table routing_table /* after_name */ {
 				"a.example.com": "foo",
 				"b.example.com": "bar",
 				"c.example.com": "baz",
 			}`,
-			expect: `table routing_table {
+			expect: `table routing_table /* after_name */ {
   "a.example.com": "foo",
   "b.example.com": "bar",
   "c.example.com": "baz",
@@ -327,10 +386,12 @@ func TestPenaltyboxDeclarationFormat(t *testing.T) {
 	}{
 		{
 			name: "formatting with comments",
-			input: `penaltybox banned_users {
+			input: `// leading
+			penaltybox /* before_name */ banned_users /* after_name */ {
 				# no properties
 			} // trailing comment`,
-			expect: `penaltybox banned_users {
+			expect: `// leading
+penaltybox /* before_name */ banned_users /* after_name */ {
   # no properties
 }  // trailing comment
 `,
@@ -353,10 +414,12 @@ func TestRatecounterDeclarationFormat(t *testing.T) {
 	}{
 		{
 			name: "formatting with comments",
-			input: `ratecounter requests_rate {
+			input: `// leading
+			ratecounter /* before_name */ requests_rate /* after_name */ {
 				# no properties
 			} // trailing comment`,
-			expect: `ratecounter requests_rate {
+			expect: `// leading
+ratecounter /* before_name */ requests_rate /* after_name */ {
   # no properties
 }  // trailing comment
 `,
@@ -380,13 +443,45 @@ func TestSubroutineDeclarationFormat(t *testing.T) {
 		{
 			name: "basic formatting with comments",
 			input: `// subroutine leading comment
-sub vcl_recv {
+sub /* before_name */ vcl_recv /* after_name */ { // leading
 	set req.http.Foo = "bar";
 	// subroutine infix comment
 } // subroutine trailing comment`,
 			expect: `// subroutine leading comment
-sub vcl_recv {
+sub /* before_name */ vcl_recv /* after_name */ {
+  // leading
   set req.http.Foo = "bar";
+  // subroutine infix comment
+}  // subroutine trailing comment
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert(t, tt.input, tt.expect, tt.conf)
+		})
+	}
+}
+
+func TestFunctionalSubroutineDeclarationFormat(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		expect string
+		conf   *config.FormatConfig
+	}{
+		{
+			name: "basic formatting with comments",
+			input: `// subroutine leading comment
+sub /* before_name */ foo /* after_name */ STRING /* after_type */ { // leading
+  return "BAR";
+  // subroutine infix comment
+} // subroutine trailing comment`,
+			expect: `// subroutine leading comment
+sub /* before_name */ foo /* after_name */ STRING /* after_type */ {
+  // leading
+  return "BAR";
   // subroutine infix comment
 }  // subroutine trailing comment
 `,
