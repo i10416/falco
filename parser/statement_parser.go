@@ -460,9 +460,9 @@ func (p *Parser) parseReturnStatement() (*ast.ReturnStatement, error) {
 	// return statement may not have argument
 	// https://developer.fastly.com/reference/vcl/statements/return/
 	if p.peekTokenIs(token.SEMICOLON) {
-		stmt.Meta.Trailing = p.trailing()
 		p.nextToken() // point to SEMICOLON
-		swapLeadingTrailing(p.curToken, stmt.Meta)
+		swapLeadingInfix(p.curToken, stmt.Meta)
+		stmt.Meta.Trailing = p.trailing()
 		return stmt, nil
 	}
 

@@ -57,6 +57,36 @@ incididunt ut labore et dolore magna aliqua`,
 			},
 			expect: `lorem ipsum dolor sit amet, consectetur adipiscing elit,`,
 		},
+		{
+			name:      "include line comment",
+			maxLength: 80,
+			input: []string{
+				"lorem",
+				"ipsum",
+				"dolor",
+				"sit",
+				"// foo",
+				"amet,",
+				"consectetur",
+				"adipiscing",
+				"elit,",
+				"sed",
+				"do",
+				"# bar",
+				"eiusmod",
+				"tempor",
+				"incididunt",
+				"ut",
+				"labore",
+				"et",
+				"dolore",
+				"magna",
+				"aliqua",
+			},
+			expect: `lorem ipsum dolor sit // foo
+amet, consectetur adipiscing elit, sed do # bar
+eiusmod tempor incididunt ut labore et dolore magna aliqua`,
+		},
 	}
 
 	for _, tt := range tests {
